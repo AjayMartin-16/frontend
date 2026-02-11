@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claims Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- LOAD CONFIG FIRST -->
+<script src="config.js"></script>
+<style>
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --white: #ffffff;
+  --bg: #f8f9fc;
+  --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+  --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+  --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937;
+  --gray-900: #111827;
+  --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-500: #3b82f6;
+  --blue-600: #2563eb; --blue-700: #1d4ed8;
+  --green-50: #f0fdf4; --green-500: #22c55e; --green-600: #16a34a; --green-700: #15803d;
+  --red-50: #fef2f2; --red-500: #ef4444; --red-600: #dc2626;
+  --amber-50: #fffbeb; --amber-600: #d97706;
+  --radius: 12px; --radius-lg: 16px; --radius-xl: 24px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04), 0 1px 3px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.06), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+  --transition: 200ms cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{font-family:var(--font);background:var(--bg);color:var(--gray-900);min-height:100vh}
+input[type=file]{display:none}
+
+/* ── Navbar ──────────────────────────────────────────── */
+.navbar {
+  background: rgba(255,255,255,.92);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 40px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+.nav-logo {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: grid; place-items: center;
+  box-shadow: 0 2px 8px rgba(37,99,235,.3);
+}
+.nav-logo svg { width: 20px; height: 20px; color: #fff; }
+.nav-title { font-size: 17px; font-weight: 700; letter-spacing: -.3px; color: var(--gray-900); }
+.nav-status {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--gray-400); font-weight: 500;
+}
+.nav-status .dot { width: 7px; height: 7px; border-radius: 50%; }
+.nav-status .dot.on { background: var(--green-500); box-shadow: 0 0 6px rgba(34,197,94,.4); }
+.nav-status .dot.off { background: var(--gray-300); }
+
+/* ── Layout ──────────────────────────────────────────── */
+.page { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+.hero { text-align: center; margin-bottom: 48px; }
+.hero h1 {
+  font-size: 36px; font-weight: 800; letter-spacing: -.8px;
+  background: linear-gradient(135deg, var(--gray-900), var(--blue-700));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero p { font-size: 16px; color: var(--gray-500); margin-top: 8px; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+/* ── Steps indicator ─────────────────────────────────── */
+.steps { display: flex; align-items: center; justify-content: center; margin-bottom: 40px; }
+.step-item { display: flex; align-items: center; gap: 10px; }
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: 700;
+  background: var(--gray-100); color: var(--gray-400); border: 2px solid var(--gray-200);
+  transition: all .3s ease;
+}
+.step-num.active { background: var(--blue-600); color: #fff; border-color: var(--blue-600); box-shadow: 0 2px 8px rgba(37,99,235,.3); }
+.step-num.done { background: var(--green-500); color: #fff; border-color: var(--green-500); }
+.step-label { font-size: 13px; font-weight: 600; color: var(--gray-400); transition: color .3s ease; }
+.step-label.active { color: var(--gray-800); }
+.step-label.done { color: var(--green-700); }
+.step-line { width: 60px; height: 2px; background: var(--gray-200); margin: 0 16px; border-radius: 1px; transition: background .3s ease; }
+.step-line.done { background: var(--green-500); }
+
+/* ── Main card ───────────────────────────────────────── */
+.main-card {
+  background: var(--white); border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+  overflow: hidden; position: relative;
+}
+.main-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed, #2563eb); background-size: 200% 100%;
+}
+.main-card.processing::before { animation: shimmer 2s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.card-inner { padding: 40px; }
+
+/* ── Dropzone ────────────────────────────────────────── */
+.dropzone {
+  border: 2px dashed var(--gray-200); border-radius: var(--radius-lg);
+  padding: 56px 32px; text-align: center; cursor: pointer;
+  transition: all var(--transition); background: var(--gray-50);
+}
+.dropzone:hover, .dropzone.over { border-color: var(--blue-500); background: var(--blue-50); }
+.dropzone-circle {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-50), var(--blue-100));
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 20px; transition: all var(--transition);
+}
+.dropzone:hover .dropzone-circle { background: linear-gradient(135deg, var(--blue-100), #c7d2fe); transform: scale(1.05); }
+.dropzone-circle svg { color: var(--blue-600); }
+.dropzone h3 { font-size: 17px; font-weight: 600; color: var(--gray-800); margin-bottom: 6px; }
+.dropzone p { font-size: 13.5px; color: var(--gray-400); line-height: 1.5; }
+.dropzone .link { color: var(--blue-600); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+
+/* ── File preview ────────────────────────────────────── */
+.file-preview {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px; margin-top: 20px;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius);
+  animation: slideUp .3s ease;
+}
+.file-icon-box {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, #fecaca, #fee2e2); color: var(--red-500);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 14px; font-weight: 600; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-size { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.file-remove {
+  width: 32px; height: 32px; border-radius: 8px; border: none;
+  background: none; cursor: pointer; color: var(--gray-400);
+  display: grid; place-items: center; transition: all var(--transition);
+}
+.file-remove:hover { background: var(--red-50); color: var(--red-500); }
+
+/* ── Submit button ───────────────────────────────────── */
+.submit-btn {
+  width: 100%; padding: 16px 24px; margin-top: 24px;
+  border: none; border-radius: var(--radius);
+  font-family: var(--font); font-size: 15px; font-weight: 600; color: #fff; cursor: pointer;
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-700));
+  box-shadow: var(--shadow-md); transition: all var(--transition);
+}
+.submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+.submit-btn:disabled { opacity: .5; cursor: not-allowed; background: var(--gray-300); }
+.submit-btn .spinner-inline {
+  display: inline-block; width: 14px; height: 14px; margin-right: 8px;
+  border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Processing view ─────────────────────────────────── */
+.processing-view { text-align: center; padding: 24px 0; }
+.processing-anim {
+  position: relative; width: 80px; height: 80px; margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.processing-anim .ring {
+  position: absolute; width: 100%; height: 100%; border-radius: 50%;
+  border: 3px solid transparent; border-top-color: var(--blue-600);
+  animation: rot 1.4s linear infinite;
+}
+.processing-anim .ring:nth-child(2){ width: 70%; height: 70%;border-top-color: var(--blue-400); animation-duration: 1s; }
+.processing-anim .ring:nth-child(3){ width: 50%; height: 50%; border-top-color: var(--blue-300); animation-duration: .7s; }
+@keyframes rot { to { transform: rotate(360deg); } }
+.processing-view h3 { font-size: 19px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+.processing-view p { font-size: 14px; color: var(--gray-400); margin-bottom: 16px; }
+.progress-detail {
+  padding: 10px 18px; margin: 12px auto 0; max-width: 400px;
+  background: var(--blue-50); border-radius: var(--radius);
+  font-size: 13px; color: var(--blue-700); font-weight: 500;
+}
+.time-note {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 20px; padding: 8px 14px; border-radius: 8px;
+  background: var(--amber-50); color: var(--amber-600);
+  font-size: 12px; font-weight: 600;
+}
+
+/* ── Error view ──────────────────────────────────────── */
+.error-view { text-align: center; padding: 24px 0; }
+.error-icon { width: 72px; height: 72px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--red-50); color: var(--red-500); }
+.error-view h3 { font-size: 19px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+.error-view p { font-size: 14px; color: var(--gray-400); margin-bottom: 20px; }
+.error-msg {
+  padding: 12px 18px; margin: 0 auto 20px; max-width: 500px; border-radius: var(--radius);
+  background: var(--red-50); border: 1px solid var(--red-500);
+  font-size: 12px; color: var(--red-600); font-family: 'SF Mono', Monaco, monospace;
+}
+.retry-btn {
+  padding: 12px 28px; border: none; border-radius: var(--radius);
+  font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer;
+  background: var(--blue-600); color: #fff; box-shadow: var(--shadow-sm);
+  transition: all var(--transition);
+}
+.retry-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+/* ── Success view ────────────────────────────────────── */
+.success-view { padding: 16px 0; }
+.success-header { text-align: center; margin-bottom: 28px; }
+.success-icon {
+  width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-50), var(--green-100));
+  color: var(--green-600); display: flex; align-items: center; justify-content: center;
+}
+.success-header h3 { font-size: 20px; font-weight: 700; color: var(--gray-800); margin-bottom: 4px; }
+.success-header p { font-size: 14px; color: var(--gray-400); }
+.dl-section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  color: var(--gray-400); margin-bottom: 12px;
+}
+.dl-grid { display: grid; gap: 10px; margin-bottom: 24px; }
+.dl-card {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  border: 1px solid var(--gray-200); border-radius: var(--radius);
+  background: var(--white); text-decoration: none; cursor: pointer;
+  transition: all var(--transition);
+}
+.dl-card:hover { border-color: var(--blue-500); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.dl-card-icon {
+  width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dl-card-icon.green { background: linear-gradient(135deg, var(--green-50), var(--green-100)); color: var(--green-600); }
+.dl-card-icon.blue { background: linear-gradient(135deg, var(--blue-50), var(--blue-100)); color: var(--blue-600); }
+.dl-card-icon.gray { background: linear-gradient(135deg, var(--gray-100), var(--gray-200)); color: var(--gray-600); }
+.dl-card-text { flex: 1; min-width: 0; }
+.dl-card-text span { display: block; font-size: 14px; font-weight: 600; color: var(--gray-800); }
+.dl-card-text small { display: block; font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.dl-card .arrow { color: var(--gray-300); transition: all var(--transition); }
+.dl-card:hover .arrow { color: var(--blue-500); transform: translateX(3px); }
+.new-btn {
+  width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius);
+  font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer;
+  background: var(--gray-100); color: var(--gray-700); display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: var(--shadow-sm); transition: all var(--transition);
+}
+.new-btn:hover { background: var(--gray-200); transform: translateY(-1px); }
+
+/* ── Footer ──────────────────────────────────────────── */
+.footer {
+  text-align: center; padding: 32px 24px; font-size: 13px; color: var(--gray-400);
+}
+
+/* ── Animations ──────────────────────────────────────── */
+.slide-up { animation: slideUp .4s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+// USE CONFIGURABLE API URL FROM config.js
+const API = window.CONFIG.API_BASE_URL;
+
+const Ico = {
+  shield: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  upload: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+  file: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>,
+  x: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  check: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  arrow: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
+  table: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>,
+  plus: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  clock: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  alert: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+};
+
+function App() {
+  const [online, setOnline] = useState(false);
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [phase, setPhase] = useState('upload');
+  const [jobId, setJobId] = useState(null);
+  const [progress, setProgress] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [dlFiles, setDlFiles] = useState(null);
+  const [animatedProgress, setAnimatedProgress] = useState('');
+  const inputRef = useRef();
+  const pollRef = useRef(null);
+  const progressAnimRef = useRef(null);
+
+  useEffect(() => {
+    const ck = async () => { try { const r = await fetch(API+'/api/v1/health',{signal:AbortSignal.timeout(window.CONFIG.API_TIMEOUT)}); setOnline(r.ok); } catch { setOnline(false); } };
+    ck(); const iv = setInterval(ck, window.CONFIG.HEALTH_CHECK_INTERVAL); return () => clearInterval(iv);
+  }, []);
+
+  const startPolling = useCallback((jid) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      try {
+        const r = await fetch(`${API}/api/v1/status/${jid}`);
+        if (!r.ok) { clearInterval(pollRef.current); setPhase('error'); setErrorMsg('Failed to check status'); return; }
+        const data = await r.json();
+        if (data.progress) setProgress(data.progress);
+        if (data.status === 'completed') {
+          clearInterval(pollRef.current);
+          setPhase('done');
+          setDlFiles(data.results?.download_urls || {});
+        } else if (data.status === 'failed') {
+          clearInterval(pollRef.current);
+          setPhase('error');
+          setErrorMsg(data.error || 'Processing failed');
+        }
+      } catch { setPhase('error'); setErrorMsg('Lost connection to server'); clearInterval(pollRef.current); }
+    }, window.CONFIG.POLL_INTERVAL);
+  }, []);
+
+  useEffect(() => () => pollRef.current && clearInterval(pollRef.current), []);
+
+  // Animated progress messages
+  useEffect(() => {
+    if (phase === 'processing') {
+      const messages = [
+        '🔍 Scanning document structure...',
+        '📄 Extracting claim details...',
+        '🧠 Running fraud detection...',
+        '⚖️ Verifying IRDA compliance...',
+        '📊 Analyzing risk patterns...',
+        '🔬 Cross-referencing policy data...',
+        '💡 Generating insights...',
+        '✨ Preparing your reports...',
+      ];
+      let idx = 0;
+      setAnimatedProgress(messages[0]);
+      
+      progressAnimRef.current = setInterval(() => {
+        idx = (idx + 1) % messages.length;
+        setAnimatedProgress(messages[idx]);
+      }, 3000);
+      
+      return () => {
+        if (progressAnimRef.current) clearInterval(progressAnimRef.current);
+      };
+    } else {
+      if (progressAnimRef.current) clearInterval(progressAnimRef.current);
+      setAnimatedProgress('');
+    }
+  }, [phase]);
+
+  const handleFile = f => { if (f && f.type === 'application/pdf') setFile(f); else alert('Please select a PDF file'); };
+
+  const handleSubmit = async () => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch(API + '/api/v1/upload-and-process', { method: 'POST', body: fd });
+      if (!r.ok) throw new Error('Upload failed');
+      const data = await r.json();
+      setJobId(data.job_id);
+      setPhase('processing');
+      startPolling(data.job_id);
+    } catch (e) { setPhase('error'); setErrorMsg(e.message); }
+    finally { setUploading(false); }
+  };
+
+  const reset = () => { 
+    setFile(null); 
+    setPhase('upload'); 
+    setJobId(null); 
+    setProgress(''); 
+    setAnimatedProgress('');
+    setErrorMsg(''); 
+    setDlFiles(null); 
+  };
+
+  const fmtSize = b => b < 1048576 ? (b/1024).toFixed(1)+' KB' : (b/1048576).toFixed(1)+' MB';
+  const stepNum = phase === 'upload' ? 1 : phase === 'processing' ? 2 : 3;
+
+  return (
+    <>
+      <nav className="navbar">
+        <div className="nav-brand">
+          <div className="nav-logo">{Ico.shield}</div>
+          <span className="nav-title">Claims Assessment</span>
+        </div>
+      </nav>
+
+      <div className="page">
+        <div className="hero">
+          <h1>Fraud Detection & Compliance</h1>
+          <p>Upload your insurance claim document for automated fraud analysis and IRDA compliance verification</p>
+        </div>
+
+        <div className="steps">
+          <div className="step-item">
+            <div className={`step-num ${stepNum===1?'active':stepNum>1?'done':''}`}>{stepNum>1?'\u2713':'1'}</div>
+            <span className={`step-label ${stepNum===1?'active':stepNum>1?'done':''}`}>Upload</span>
+          </div>
+          <div className={`step-line ${stepNum>1?'done':''}`}/>
+          <div className="step-item">
+            <div className={`step-num ${stepNum===2?'active':stepNum>2?'done':''}`}>{stepNum>2?'\u2713':'2'}</div>
+            <span className={`step-label ${stepNum===2?'active':stepNum>2?'done':''}`}>Analyze</span>
+          </div>
+          <div className={`step-line ${stepNum>2?'done':''}`}/>
+          <div className="step-item">
+            <div className={`step-num ${stepNum===3?'active':''}`}>3</div>
+            <span className={`step-label ${stepNum===3?'active':''}`}>Download</span>
+          </div>
+        </div>
+
+        <div className={`main-card ${phase==='processing'?'processing':''}`}>
+          <div className="card-inner">
+
+            {phase === 'upload' && (
+              <div className="slide-up">
+                <div className="dropzone"
+                  onClick={() => inputRef.current.click()}
+                  onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('over'); }}
+                  onDragLeave={e => e.currentTarget.classList.remove('over')}
+                  onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('over'); handleFile(e.dataTransfer.files[0]); }}
+                >
+                  <input ref={inputRef} type="file" accept=".pdf" onChange={e => handleFile(e.target.files[0])} />
+                  <div className="dropzone-circle">{Ico.upload}</div>
+                  <h3>Drag and drop your claim PDF</h3>
+                  <p>or <span className="link">click to browse</span> from your computer</p>
+                  <p style={{marginTop:8,fontSize:12,color:'var(--gray-400)'}}>Supported format: PDF up to 50 MB</p>
+                </div>
+                {file && (
+                  <div className="file-preview slide-up">
+                    <div className="file-icon-box">{Ico.file}</div>
+                    <div className="file-info">
+                      <div className="file-name">{file.name}</div>
+                      <div className="file-size">{fmtSize(file.size)}</div>
+                    </div>
+                    <button className="file-remove" onClick={() => setFile(null)}>{Ico.x}</button>
+                  </div>
+                )}
+                <button className="submit-btn" disabled={!file||uploading} onClick={handleSubmit}>
+                  {uploading ? <><span className="spinner-inline"/> Uploading...</> : <>Submit for Analysis</>}
+                </button>
+              </div>
+            )}
+
+            {phase === 'processing' && (
+              <div className="processing-view slide-up">
+                <div className="processing-anim"><div className="ring"/><div className="ring"/><div className="ring"/></div>
+                <h3>Analyzing Your Claim</h3>
+                <p>Running fraud detection and compliance verification</p>
+                {(progress || animatedProgress) && (
+                  <div className="progress-detail">{progress || animatedProgress}</div>
+                )}
+                <div className="time-note">{Ico.clock} This usually takes 12-16 minutes</div>
+              </div>
+            )}
+
+            {phase === 'error' && (
+              <div className="error-view slide-up">
+                <div className="error-icon">{Ico.alert}</div>
+                <h3>Something went wrong</h3>
+                <p>We couldn't process your claim. Please try uploading again.</p>
+                {errorMsg && <div className="error-msg">{errorMsg}</div>}
+                <button className="retry-btn" onClick={reset}>Try Again</button>
+              </div>
+            )}
+
+            {phase === 'done' && dlFiles && (
+              <div className="success-view slide-up">
+                <div className="success-header">
+                  <div className="success-icon">{Ico.check}</div>
+                  <h3>Analysis Complete</h3>
+                  <p>Your reports are ready to download</p>
+                </div>
+                <div className="dl-section-label">Reports</div>
+                <div className="dl-grid">
+                  {[
+                    ['gemini_excel','Claims Analysis Report','Excel Report','green'],
+                  ].filter(([k])=>dlFiles[k]).map(([key,label,ext,clr])=>(
+                    <a key={key}
+                      href={dlFiles[key].startsWith('http')?dlFiles[key]:`${API}/api/v1/download/${jobId}/${key}`}
+                      target="_blank" rel="noopener" className="dl-card">
+                      <div className={`dl-card-icon ${clr}`}>{clr==='green'?Ico.table:Ico.file}</div>
+                      <div className="dl-card-text"><span>{label}</span><small>{ext}</small></div>
+                      <div className="arrow">{Ico.arrow}</div>
+                    </a>
+                  ))}
+                </div>
+                <button className="new-btn" onClick={reset}>{Ico.plus} Analyze Another Claim</button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+      <div className="footer">Claims Assessment System</div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
