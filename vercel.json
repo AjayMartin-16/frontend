@@ -6,42 +6,18 @@
       "use": "@vercel/static"
     }
   ],
-
-  // SPA routing: always serve index.html
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-
-  // Optional: proxy API through Vercel instead of calling app.xangarsinfra.com directly
-  // If you want this, change API_BASE_URL in config.js to "" (same origin) and use these:
-  /*
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "http://app.xangarsinfra.com:8000/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
-  */
-
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" }
       ]
     }
   ]
